@@ -22,6 +22,7 @@ export const productSchema = z.object({
   description: optionalString,
   price: optionalNumber,
   imageUrl: optionalString,
+  sourceUrl: optionalString,
   material: optionalString,
   weightG: optionalNumber,
   lengthMm: optionalNumber,

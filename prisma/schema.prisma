@@ -30,6 +30,7 @@ model Product {
   description   String?
   price         Float?
   imageUrl      String?
+  sourceUrl     String?
   material      String?
   weightG       Float?
   lengthMm      Float?

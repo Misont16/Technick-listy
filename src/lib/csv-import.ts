@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import type { ImportedRow } from "@/lib/product-import";
 
 // Aliasy hlaviček sloupců (ceske i anglicke nazvy, ruzne exporty eshopu)
 const FIELD_ALIASES: Record<string, string[]> = {
@@ -8,6 +9,7 @@ const FIELD_ALIASES: Record<string, string[]> = {
   description: ["description", "popis", "dlouhy popis", "dlouhý popis"],
   price: ["price", "cena", "cena s dph", "cena bez dph"],
   imageUrl: ["image", "imageurl", "obrazek", "obrázek", "foto", "image url", "hlavni obrazek", "hlavní obrázek"],
+  sourceUrl: ["url", "link", "odkaz", "product url", "produktova stranka", "produktová stránka"],
   material: ["material", "materiál"],
   weightG: ["weight", "hmotnost", "hmotnost (g)", "weight (g)"],
   lengthMm: ["length", "delka", "délka", "delka (mm)", "délka (mm)"],
@@ -30,23 +32,6 @@ const NUMERIC_FIELDS = new Set([
 function normalizeHeader(header: string): string {
   return header.trim().toLowerCase();
 }
-
-export type ImportedRow = {
-  sku: string;
-  name: string;
-  category?: string;
-  description?: string;
-  price?: number;
-  imageUrl?: string;
-  material?: string;
-  weightG?: number;
-  lengthMm?: number;
-  widthMm?: number;
-  heightMm?: number;
-  volumeMl?: number;
-  color?: string;
-  countryOfOrigin?: string;
-};
 
 export function parseProductsCsv(csvText: string): {
   rows: ImportedRow[];

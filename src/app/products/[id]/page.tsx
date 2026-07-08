@@ -52,6 +52,7 @@ export default async function ProductDetailPage({
           description: product.description ?? undefined,
           price: product.price,
           imageUrl: product.imageUrl ?? undefined,
+          sourceUrl: product.sourceUrl ?? undefined,
           material: product.material ?? undefined,
           weightG: product.weightG,
           lengthMm: product.lengthMm,

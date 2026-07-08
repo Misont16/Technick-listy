@@ -1,19 +1,23 @@
 # Technické listy — eobaly.cz
 
 Interní aplikace pro generování technických listů produktů z e-shopu eobaly.cz.
-Kolegové se přihlásí, spravují produkty (ručně nebo importem z CSV) a stáhnou
-technický list ve formátu **.docx** (editovatelný ve Wordu).
+Kolegové se přihlásí, produkty se synchronizují přímo z eshopu (nebo zadají
+ručně) a stáhnou technický list ve formátu **.docx** (editovatelný ve Wordu)
+se sjednoceným záhlavím a zápatím na každé straně.
 
 ## Funkce
 
 - Přihlášení kolegů (e-mail + heslo), role Admin / Člen
 - Admin může přidávat a mazat uživatele (`/users`)
 - Evidence produktů — název, SKU, kategorie, rozměry, hmotnost, materiál,
-  cena, popis a libovolné vlastní parametry
-- Import produktů z CSV exportu e-shopu (párování podle SKU, aktualizace
-  existujících záznamů), ruční doplnění technických parametrů, které e-shop
-  neobsahuje
-- Generování technického listu produktu jako .docx ke stažení
+  cena, popis, odkaz na eshop a libovolné vlastní parametry
+- Synchronizace produktů přímo z produktového feedu eobaly.cz (párování podle
+  SKU, aktualizace existujících záznamů), ruční doplnění technických
+  parametrů, které feed neobsahuje; CSV import zůstává jako záložní ruční
+  varianta
+- Generování technického listu produktu jako .docx ke stažení, se stejným
+  záhlavím (logo servisbal.) a zápatím (kontaktní údaje SERVISBAL OBALY
+  s.r.o. + eobaly.cz) na každé stránce
 
 ## Požadavky
 
@@ -49,13 +53,37 @@ SEED_ADMIN_EMAIL=jmeno@eobaly.cz SEED_ADMIN_PASSWORD=silne-heslo SEED_ADMIN_NAME
 
 ## Import produktů z e-shopu
 
-Na stránce **Import z eshopu** (`/products/import`) nahraješ CSV export
-produktů (např. z administrace e-shopu). Podporované sloupce (nerozlišují
-velikost písmen, česky i anglicky): SKU/kód, název, kategorie, popis, cena,
-obrázek, materiál, hmotnost, délka, šířka, výška, objem, barva, země
-původu. Produkty se párují podle SKU — existující se aktualizují, nové se
-vytvoří. Technické parametry, které e-shop neexportuje, se pak doplní ručně
-na detailu produktu.
+Na stránce **Produkty z eshopu** (`/products/import`) je tlačítko
+**Synchronizovat teď**, které stáhne aktuální produkty přímo z veřejného
+produktového feedu eobaly.cz (adresa v `EOBALY_FEED_URL`, výchozí
+`https://www.eobaly.cz/google_1457.xml` — Google Merchant XML formát).
+Produkty se párují podle SKU (`g:id`) — existující se aktualizují, nové se
+vytvoří. Feed obsahuje jen základní údaje (název, popis, cena, obrázek,
+kategorie, odkaz) — technické parametry jako materiál nebo přesné rozměry se
+doplní ručně na detailu produktu.
+
+Jako záloha (např. když feed neobsahuje potřebný sloupec, nebo pro jednorázový
+import odjinud) je pod tím k dispozici i ruční nahrání CSV se stejnou logikou
+párování podle SKU.
+
+> **Pozn.:** V sandboxované vývojové session, ve které tato appka vznikla,
+> je odchozí síťový přístup na `eobaly.cz` blokovaný, takže synchronizaci
+> z feedu nešlo živě otestovat proti reálným datům. Parser je napsaný podle
+> standardního formátu Google Merchant XML feedů a je tolerantní k chybějícím
+> polím — po nasazení na server s běžným internetovým přístupem doporučuji
+> synchronizaci nejdřív vyzkoušet a zkontrolovat, že se pole mapují správně
+> (podle skutečné struktury `google_1457.xml`).
+
+## Záhlaví a zápatí technického listu
+
+Vzhled vychází z poskytnutého firemního dokumentu (Prohlášení o politice
+FSC). Barvy (zelená `#0F6433`, tmavá `#2B2F31`) jsou odečtené přímo z PDF,
+loga v `src/assets/branding/` jsou zjednodušenou rekonstrukcí (ne pixelově
+identická kopie originálních log) — pokud máš oficiální PNG/SVG loga
+servisbal. a Eobaly.cz, stačí jimi nahradit soubory `servisbal-mark.png` a
+`eobaly-mark.png` ve stejném adresáři. Záhlaví a zápatí definuje
+`src/lib/datasheet.ts` a `src/lib/branding.ts` a je stejné na každé
+vygenerované stránce každého technického listu.
 
 ## Nasazení do provozu
 
@@ -69,4 +97,5 @@ na detailu produktu.
 
 Next.js (App Router) + TypeScript + Tailwind CSS, Prisma + SQLite,
 Auth.js (NextAuth) s přihlášením přes e-mail/heslo, knihovna `docx` pro
-generování Word dokumentů, `papaparse` pro CSV import.
+generování Word dokumentů, `fast-xml-parser` pro čtení produktového feedu,
+`papaparse` pro záložní CSV import.

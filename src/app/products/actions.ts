@@ -22,6 +22,7 @@ function formToProductInput(formData: FormData) {
     description: formData.get("description"),
     price: formData.get("price"),
     imageUrl: formData.get("imageUrl"),
+    sourceUrl: formData.get("sourceUrl"),
     material: formData.get("material"),
     weightG: formData.get("weightG"),
     lengthMm: formData.get("lengthMm"),

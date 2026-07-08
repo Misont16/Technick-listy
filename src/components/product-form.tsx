@@ -10,6 +10,7 @@ export type ProductFormValues = {
   description?: string;
   price?: number | null;
   imageUrl?: string;
+  sourceUrl?: string;
   material?: string;
   weightG?: number | null;
   lengthMm?: number | null;
@@ -70,6 +71,9 @@ export default function ProductForm({
         </Field>
         <Field label="URL obrázku">
           <input name="imageUrl" defaultValue={initial?.imageUrl} className="input" />
+        </Field>
+        <Field label="Odkaz na produkt na eshopu">
+          <input name="sourceUrl" defaultValue={initial?.sourceUrl} className="input" />
         </Field>
       </div>
 
