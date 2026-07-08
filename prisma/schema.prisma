@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  role          Role      @default(MEMBER)
+  createdAt     DateTime  @default(now())
+  products      Product[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  sku           String   @unique
+  name          String
+  category      String?
+  description   String?
+  price         Float?
+  imageUrl      String?
+  material      String?
+  weightG       Float?
+  lengthMm      Float?
+  widthMm       Float?
+  heightMm      Float?
+  volumeMl      Float?
+  color         String?
+  countryOfOrigin String?
+  customFields  String?  // JSON string: [{ "label": "...", "value": "..." }]
+  source        String   @default("MANUAL") // MANUAL | IMPORT
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdById   String?
+  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+}
