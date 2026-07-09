@@ -23,16 +23,17 @@ se sjednoceným záhlavím a zápatím na každé straně.
 
 - Node.js 20+
 - npm
+- PostgreSQL databáze (lokálně nainstalovaná, nebo zdarma u Neon/Supabase/Vercel Postgres)
 
 ## První spuštění
 
 ```bash
 npm install
 
-# vytvoří .env, pokud ještě neexistuje — uprav AUTH_SECRET na náhodný řetězec
+# vytvoří .env, pokud ještě neexistuje — uprav DATABASE_URL a AUTH_SECRET
 cp .env.example .env
 
-# vytvoří SQLite databázi a aplikuje migrace
+# aplikuje databázové migrace
 npm run db:migrate
 
 # vytvoří prvního admin účtu (výchozí admin@eobaly.cz / changeme123)
@@ -104,17 +105,67 @@ servisbal. a Eobaly.cz, stačí jimi nahradit soubory `servisbal-mark.png` a
 `src/lib/datasheet.ts` a `src/lib/branding.ts` a je stejné na každé
 vygenerované stránce každého technického listu.
 
-## Nasazení do provozu
+## Nasazení do provozu (Vercel + Neon)
 
-- Nastav `AUTH_SECRET` na bezpečný náhodný řetězec (`openssl rand -base64 32`).
-- Výchozí databáze je SQLite soubor (`prisma/dev.db`) — pro provoz na serveru
-  s více instancemi zvaž přechod na Postgres (změna `provider` v
-  `prisma/schema.prisma` a `DATABASE_URL`).
-- `npm run build && npm run start` spustí produkční build.
+Aplikace je připravená na nasazení na [Vercel](https://vercel.com) (hosting
+zdarma pro tuto velikost appky) s databází [Neon](https://neon.tech)
+(PostgreSQL zdarma). `npm run build` automaticky aplikuje databázové migrace
+(`prisma migrate deploy`) při každém nasazení.
+
+### 1. Založ databázi na Neon
+
+1. Jdi na https://neon.tech a založ si účet (zdarma, stačí přihlášení přes
+   GitHub/Google).
+2. Vytvoř nový projekt (New Project) — název může být třeba `technicke-listy`.
+3. V přehledu projektu najdeš **Connection string** — zkopíruj ho, vypadá
+   nějak takto: `postgresql://uzivatel:heslo@ep-xxxxx.neon.tech/neondb?sslmode=require`.
+
+### 2. Nasaď na Vercel
+
+1. Jdi na https://vercel.com a založ si účet (přihlas se přes GitHub).
+2. Klikni na **Add New → Project** a vyber repozitář `Misont16/Technick-listy`.
+3. V nastavení projektu (**Environment Variables**) přidej:
+   - `DATABASE_URL` — connection string z Neon (krok výše)
+   - `AUTH_SECRET` — náhodný řetězec (vygeneruješ např. na
+     https://generate-secret.vercel.app/32)
+   - `EOBALY_FEED_URL` — `https://www.eobaly.cz/google_1457.xml`
+4. Ujisti se, že se nasazuje branch `claude/product-datasheet-generator-686qdk`
+   (nebo appku nejdřív sluč do hlavní branch, podle toho, co preferuješ).
+5. Klikni **Deploy**. Vercel appku zabuildí (včetně aplikování databázových
+   migrací) a přidělí jí adresu ve tvaru `https://technicke-listy-xxxx.vercel.app`.
+
+### 3. Vytvoř prvního admin účtu v produkční databázi
+
+Seed skript se nespouští automaticky při nasazení (aby náhodou nešlo znovu
+vytvořit admina při každém update). Spusť ho jednou ručně ze svého počítače,
+namířený na produkční databázi:
+
+```bash
+DATABASE_URL="postgresql://...connection string z Neon..." \
+SEED_ADMIN_EMAIL=jmeno@eobaly.cz \
+SEED_ADMIN_PASSWORD=silne-heslo \
+SEED_ADMIN_NAME="Jméno Příjmení" \
+npm run db:seed
+```
+
+### 4. (Volitelné) Vlastní doména
+
+V nastavení projektu na Vercelu (**Settings → Domains**) můžeš místo adresy
+`*.vercel.app` přidat vlastní doménu nebo subdoménu, např.
+`technicke-listy.eobaly.cz` — Vercel ti ukáže DNS záznam, který je potřeba
+přidat u správce domény eobaly.cz.
+
+Poté už kolegové zadají tuto adresu do prohlížeče a přihlásí se stejně jako
+lokálně.
+
+### Aktualizace appky po nasazení
+
+Každý nový `git push` do sledované branch na GitHubu Vercel automaticky znovu
+zabuildí a nasadí (včetně nových databázových migrací, pokud nějaké přibydou).
 
 ## Tech stack
 
-Next.js (App Router) + TypeScript + Tailwind CSS, Prisma + SQLite,
+Next.js (App Router) + TypeScript + Tailwind CSS, Prisma + PostgreSQL,
 Auth.js (NextAuth) s přihlášením přes e-mail/heslo, knihovna `docx` pro
 generování Word dokumentů, `fast-xml-parser` pro čtení produktového feedu,
 `papaparse` pro záložní CSV import.
