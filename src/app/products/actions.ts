@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { productSchema, type CustomField } from "@/lib/product-schema";
+import { fetchProductProperties } from "@/lib/eshop-product-page";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -70,6 +71,45 @@ export async function updateProduct(id: string, formData: FormData) {
   revalidatePath("/products");
   revalidatePath(`/products/${id}`);
   redirect(`/products/${id}`);
+}
+
+export async function refreshPropertiesFromEshop(id: string) {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  const product = await prisma.product.findUnique({ where: { id } });
+  if (!product) redirect("/products");
+  if (!product.sourceUrl) {
+    redirect(
+      `/products/${id}?error=${encodeURIComponent(
+        "Produkt nemá odkaz na eshop (sourceUrl) — nejdřív ho synchronizuj z feedu nebo doplň ručně.",
+      )}`,
+    );
+  }
+
+  let fields: CustomField[];
+  try {
+    fields = await fetchProductProperties(product.sourceUrl as string);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Neznámá chyba";
+    redirect(`/products/${id}?error=${encodeURIComponent(`Načtení se nezdařilo: ${message}`)}`);
+  }
+
+  if (fields.length === 0) {
+    redirect(
+      `/products/${id}?error=${encodeURIComponent(
+        "Na stránce produktu se nepodařilo najít tabulku 'Vlastnosti produktu'.",
+      )}`,
+    );
+  }
+
+  await prisma.product.update({
+    where: { id },
+    data: { customFields: JSON.stringify(fields) },
+  });
+
+  revalidatePath(`/products/${id}`);
+  redirect(`/products/${id}?propertiesRefreshed=1`);
 }
 
 export async function deleteProduct(id: string) {

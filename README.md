@@ -66,13 +66,32 @@ Jako záloha (např. když feed neobsahuje potřebný sloupec, nebo pro jednorá
 import odjinud) je pod tím k dispozici i ruční nahrání CSV se stejnou logikou
 párování podle SKU.
 
+### Vlastnosti produktu (technické parametry)
+
+Feed obsahuje jen základní údaje (název, popis, cena, obrázek, kategorie,
+odkaz na eshop). Přesné technické parametry — vnější/vnitřní rozměr,
+materiál, druh lepenky, FEFCO, paletizace EUR/US, hmotnost, celní
+nomenklaturu apod. — eshop zobrazuje v tabulce "Vlastnosti produktu" přímo
+na stránce produktu. Tlačítko **Načíst vlastnosti z eshopu** na detailu
+produktu (`src/lib/eshop-product-page.ts`) tuto tabulku stáhne a naparsuje
+přímo ze stránky produktu (pomocí jejího `sourceUrl` získaného z feedu) a
+uloží jako vlastní parametry produktu — přesně v pořadí a se stejnými
+popisky, jaké má eshop. Tím se technický list váže na SKU (registrační
+číslo) produktu a obsahuje stejné vlastnosti, jaké vidí zákazník na webu.
+
+Toto tlačítko načítá jen jeden produkt najednou (aby se předešlo
+timeoutu při hromadném stahování desítek stránek) — hodí se spustit až
+u konkrétního produktu, pro který zrovna generuješ technický list.
+
 > **Pozn.:** V sandboxované vývojové session, ve které tato appka vznikla,
 > je odchozí síťový přístup na `eobaly.cz` blokovaný, takže synchronizaci
-> z feedu nešlo živě otestovat proti reálným datům. Parser je napsaný podle
-> standardního formátu Google Merchant XML feedů a je tolerantní k chybějícím
-> polím — po nasazení na server s běžným internetovým přístupem doporučuji
-> synchronizaci nejdřív vyzkoušet a zkontrolovat, že se pole mapují správně
-> (podle skutečné struktury `google_1457.xml`).
+> z feedu i stahování stránky produktu nešlo živě otestovat proti reálným
+> datům — ověřil jsem to proti lokálnímu mock serveru s HTML, které mi
+> poskytl zadavatel (skutečná struktura tabulky "Vlastnosti produktu" z
+> `eobaly.cz`), a proti standardnímu formátu Google Merchant XML feedů.
+> Po nasazení na server s běžným internetovým přístupem doporučuji obě
+> funkce vyzkoušet na reálném produktu a zkontrolovat, že se pole mapují
+> správně.
 
 ## Záhlaví a zápatí technického listu
 
