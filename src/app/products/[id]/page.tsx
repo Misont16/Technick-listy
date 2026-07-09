@@ -85,7 +85,7 @@ export default async function ProductDetailPage({
             title={
               product.sourceUrl
                 ? undefined
-                : "Produkt nemá odkaz na eshop — synchronizuj ho nejdřív z feedu."
+                : "Produkt nemá odkaz na eshop — doplň ho v Excelu/CSV při importu, nebo ručně ve formuláři níže."
             }
           >
             Načíst vlastnosti z eshopu

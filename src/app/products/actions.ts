@@ -82,7 +82,7 @@ export async function refreshPropertiesFromEshop(id: string) {
   if (!product.sourceUrl) {
     redirect(
       `/products/${id}?error=${encodeURIComponent(
-        "Produkt nemá odkaz na eshop (sourceUrl) — nejdřív ho synchronizuj z feedu nebo doplň ručně.",
+        "Produkt nemá odkaz na eshop — doplň sloupec 'odkaz na eshop' při importu (Excel/CSV), nebo ho vyplň ručně na tomto detailu.",
       )}`,
     );
   }
