@@ -30,7 +30,7 @@ export default async function ProductsPage({
             href="/products/import"
             className="rounded border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100"
           >
-            Import z eshopu
+            Import produktů
           </Link>
           <Link
             href="/products/new"

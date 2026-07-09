@@ -11,10 +11,11 @@ se sjednoceným záhlavím a zápatím na každé straně.
 - Admin může přidávat a mazat uživatele (`/users`)
 - Evidence produktů — název, SKU, kategorie, rozměry, hmotnost, materiál,
   cena, popis, odkaz na eshop a libovolné vlastní parametry
+- Import produktů z vlastního souboru **Excel (.xlsx) nebo CSV** — libovolné
+  sloupce, které appka nezná, se automaticky uloží jako vlastní parametry
+  produktu a objeví se na technickém listu
 - Synchronizace produktů přímo z produktového feedu eobaly.cz (párování podle
-  SKU, aktualizace existujících záznamů), ruční doplnění technických
-  parametrů, které feed neobsahuje; CSV import zůstává jako záložní ruční
-  varianta
+  SKU, aktualizace existujících záznamů) jako alternativa k Excelu/CSV
 - Generování technického listu produktu jako .docx ke stažení, se stejným
   záhlavím (logo servisbal.) a zápatím (kontaktní údaje SERVISBAL OBALY
   s.r.o. + eobaly.cz) na každé stránce
@@ -52,20 +53,28 @@ Vlastní přihlašovací údaje prvního admina lze nastavit před seedem:
 SEED_ADMIN_EMAIL=jmeno@eobaly.cz SEED_ADMIN_PASSWORD=silne-heslo SEED_ADMIN_NAME="Jméno Příjmení" npm run db:seed
 ```
 
-## Import produktů z e-shopu
+## Import produktů
 
-Na stránce **Produkty z eshopu** (`/products/import`) je tlačítko
-**Synchronizovat teď**, které stáhne aktuální produkty přímo z veřejného
-produktového feedu eobaly.cz (adresa v `EOBALY_FEED_URL`, výchozí
-`https://www.eobaly.cz/google_1457.xml` — Google Merchant XML formát).
-Produkty se párují podle SKU (`g:id`) — existující se aktualizují, nové se
-vytvoří. Feed obsahuje jen základní údaje (název, popis, cena, obrázek,
-kategorie, odkaz) — technické parametry jako materiál nebo přesné rozměry se
-doplní ručně na detailu produktu.
+Na stránce **Import produktů** (`/products/import`) je nahrání souboru
+**Excel (.xlsx) nebo CSV** — hlavní způsob, jak appku naplnit vlastními daty.
+První řádek musí obsahovat názvy sloupců, sloupce SKU/kód a název jsou
+povinné. Appka rozpozná typické sloupce (SKU, název, kategorie, popis, cena,
+obrázek, odkaz na eshop, materiál, hmotnost, rozměry, barva, země původu) —
+**libovolný jiný sloupec** (např. vlastní technický parametr jako "FEFCO"
+nebo "Paletizace EUR") se automaticky uloží jako vlastní parametr produktu a
+objeví se jako řádek na vygenerovaném technickém listu, přesně pod stejným
+názvem, jaký má v souboru. Produkty se párují podle SKU — existující se
+aktualizují, nové se vytvoří.
 
-Jako záloha (např. když feed neobsahuje potřebný sloupec, nebo pro jednorázový
-import odjinud) je pod tím k dispozici i ruční nahrání CSV se stejnou logikou
-párování podle SKU.
+Rozpoznávání sloupců je společné pro Excel i CSV (`src/lib/import-field-aliases.ts`).
+
+Jako alternativu je pod tím tlačítko **Synchronizovat teď**, které stáhne
+aktuální produkty přímo z veřejného produktového feedu eobaly.cz (adresa v
+`EOBALY_FEED_URL`, výchozí `https://www.eobaly.cz/google_1457.xml` — Google
+Merchant XML formát). Feed obsahuje jen základní údaje (název, popis, cena,
+obrázek, kategorie, odkaz) — technické parametry jako materiál nebo přesné
+rozměry se doplní buď ručně, nebo tlačítkem "Načíst vlastnosti z eshopu" na
+detailu produktu (viz níže).
 
 ### Vlastnosti produktu (technické parametry)
 
@@ -168,4 +177,5 @@ zabuildí a nasadí (včetně nových databázových migrací, pokud nějaké p�
 Next.js (App Router) + TypeScript + Tailwind CSS, Prisma + PostgreSQL,
 Auth.js (NextAuth) s přihlášením přes e-mail/heslo, knihovna `docx` pro
 generování Word dokumentů, `fast-xml-parser` pro čtení produktového feedu,
-`papaparse` pro záložní CSV import.
+`exceljs` pro import z Excelu, `papaparse` pro import z CSV, `cheerio` pro
+načítání vlastností produktu ze stránky eshopu.

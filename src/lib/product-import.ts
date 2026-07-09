@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { CustomField } from "@/lib/product-schema";
 
 export type ImportedRow = {
   sku: string;
@@ -16,6 +17,7 @@ export type ImportedRow = {
   volumeMl?: number;
   color?: string;
   countryOfOrigin?: string;
+  customFields?: CustomField[];
 };
 
 export async function upsertImportedProducts(
@@ -25,17 +27,22 @@ export async function upsertImportedProducts(
   let created = 0;
   let updated = 0;
 
-  for (const row of rows) {
+  for (const { customFields, ...row } of rows) {
+    const data = {
+      ...row,
+      ...(customFields ? { customFields: JSON.stringify(customFields) } : {}),
+    };
+
     const existing = await prisma.product.findUnique({ where: { sku: row.sku } });
     if (existing) {
       await prisma.product.update({
         where: { sku: row.sku },
-        data: { ...row, source: "IMPORT" },
+        data: { ...data, source: "IMPORT" },
       });
       updated += 1;
     } else {
       await prisma.product.create({
-        data: { ...row, source: "IMPORT", createdById: actorId },
+        data: { ...data, source: "IMPORT", createdById: actorId },
       });
       created += 1;
     }

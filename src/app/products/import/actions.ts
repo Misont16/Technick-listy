@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { parseProductsCsv } from "@/lib/csv-import";
+import { parseProductsXlsx } from "@/lib/xlsx-import";
 import { fetchFeedProducts, DEFAULT_FEED_URL } from "@/lib/eshop-feed";
 import { upsertImportedProducts } from "@/lib/product-import";
 import { redirect } from "next/navigation";
@@ -44,7 +45,7 @@ export async function syncFromFeed() {
   );
 }
 
-export async function importProductsCsv(formData: FormData) {
+export async function importProductsFile(formData: FormData) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -53,12 +54,22 @@ export async function importProductsCsv(formData: FormData) {
     redirect("/products/import?error=missing-file");
   }
 
-  const csvText = await (file as File).text();
-  const { rows, skipped } = parseProductsCsv(csvText);
+  const name = (file as File).name.toLowerCase();
+  let rows;
+  let skipped;
+
+  if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+    const buffer = Buffer.from(await (file as File).arrayBuffer());
+    ({ rows, skipped } = await parseProductsXlsx(buffer));
+  } else {
+    const text = await (file as File).text();
+    ({ rows, skipped } = parseProductsCsv(text));
+  }
+
   const { created, updated } = await upsertImportedProducts(rows, session.user.id);
 
   revalidatePath("/products");
   redirect(
-    `/products/import?created=${created}&updated=${updated}&skipped=${skipped}&via=csv`,
+    `/products/import?created=${created}&updated=${updated}&skipped=${skipped}&via=file`,
   );
 }

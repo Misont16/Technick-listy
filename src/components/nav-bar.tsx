@@ -17,7 +17,7 @@ export default function NavBar({
             Produkty
           </Link>
           <Link href="/products/import" className="text-sm text-zinc-600 hover:text-zinc-900">
-            Import z eshopu
+            Import produktů
           </Link>
           {user.role === "ADMIN" && (
             <Link href="/users" className="text-sm text-zinc-600 hover:text-zinc-900">
